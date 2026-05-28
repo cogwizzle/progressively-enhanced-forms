@@ -60,7 +60,11 @@ class LocalStorageForm extends HTMLElement {
     if (!id) {
       throw new Error('Form element must have an id attribute')
     }
-    this.#write(id, new FormData(element))
+    const formData = new FormData(element)
+    for (const el of element.querySelectorAll('repeating-section [name]')) {
+      formData.delete(el.getAttribute('name') ?? '')
+    }
+    this.#write(id, formData)
   }
 
   #loadForms() {

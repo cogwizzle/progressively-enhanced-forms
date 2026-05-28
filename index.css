@@ -154,8 +154,3 @@ repeating-section > div > div button:hover {
   background: var(--color-danger-hover);
 }
 
-repeating-section > button {
-  align-self: flex-start;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.875rem;
-}

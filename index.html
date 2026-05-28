@@ -51,9 +51,10 @@
         <legend>Contacts</legend>
         <repeating-section name="contacts">
           <template>
-            <input data-name="contact-name" placeholder="Name">
-            <input data-name="contact-email" type="email" placeholder="Email">
+            <label>Name <input name="contact-name" type="text" autocomplete="name"></label>
+            <label>Email <input name="contact-email" type="email" autocomplete="email"></label>
           </template>
+          <button type="button" data-add>Add Contact</button>
         </repeating-section>
       </fieldset>
 

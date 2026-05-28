@@ -8,7 +8,7 @@ class RepeatingSection extends HTMLElement {
   #boundSave = this.#save.bind(this)
 
   connectedCallback() {
-    this.#template = this.querySelector('template')
+    this.#template = this.querySelector(':scope > template')
     this.#render()
 
     this.#form = this.closest('form')
@@ -26,24 +26,45 @@ class RepeatingSection extends HTMLElement {
   }
 
   /**
+   * @returns {string}
+   */
+  #generateRowId() {
+    const existing = new Set(
+      [.../** @type {NodeListOf<HTMLElement>} */ (this.#rowsContainer?.querySelectorAll(':scope > [data-row-id]') ?? [])]
+        .map(el => el.dataset.rowId)
+    )
+    let id
+    do { id = crypto.randomUUID() } while (existing.has(id))
+    return id
+  }
+
+  /**
    * @param {Record<string, string>} [data]
    */
   #addRow(data = {}) {
     if (!this.#template || !this.#rowsContainer) return
 
+    const rowId = data._rowId ?? this.#generateRowId()
     const row = document.createElement('div')
+    row.dataset.rowId = rowId
+
     const content = /** @type {DocumentFragment} */ (this.#template.content.cloneNode(true))
 
-    for (const el of content.querySelectorAll('[data-name]')) {
-      const name = el.dataset.name ?? ''
-      if (el instanceof HTMLInputElement && el.type === 'checkbox') {
-        el.checked = data[name] === 'true'
-      } else if (
+    for (const el of content.querySelectorAll('[name]')) {
+      if (
         el instanceof HTMLInputElement
         || el instanceof HTMLTextAreaElement
         || el instanceof HTMLSelectElement
       ) {
-        el.value = data[name] ?? ''
+        const fieldName = el.name
+        el.dataset.name = fieldName
+        el.name = `${fieldName}-${rowId}`
+
+        if (el instanceof HTMLInputElement && el.type === 'checkbox') {
+          el.checked = data[fieldName] === 'true'
+        } else {
+          el.value = data[fieldName] ?? ''
+        }
       }
     }
 
@@ -67,8 +88,9 @@ class RepeatingSection extends HTMLElement {
 
     const rows = this.#rowsContainer.querySelectorAll(':scope > div')
     const data = [...rows]
-      .map(row =>
-        Object.fromEntries(
+      .map(row => {
+        const rowId = /** @type {HTMLElement} */ (row).dataset.rowId ?? ''
+        const fields = Object.fromEntries(
           [...row.querySelectorAll('[data-name]')].map((el) => {
             const name = /** @type {HTMLElement} */ (el).dataset.name ?? ''
             if (el instanceof HTMLInputElement && el.type === 'checkbox') {
@@ -84,8 +106,9 @@ class RepeatingSection extends HTMLElement {
             return [name, '']
           })
         )
-      )
-      .filter(rowData => Object.values(rowData).some(v => v !== '' && v !== 'false'))
+        return { _rowId: rowId, ...fields }
+      })
+      .filter(({ _rowId, ...fields }) => Object.values(fields).some(v => v !== '' && v !== 'false'))
 
     try {
       localStorage.setItem(`${form.id}.${this.getAttribute('name')}`, JSON.stringify(data))
@@ -114,13 +137,10 @@ class RepeatingSection extends HTMLElement {
 
   #render() {
     const rows = document.createElement('div')
-    const addBtn = document.createElement('button')
-    addBtn.type = 'button'
-    addBtn.textContent = 'Add'
-    addBtn.addEventListener('click', () => this.#addRow())
-    this.appendChild(rows)
-    this.appendChild(addBtn)
+    const addBtn = this.querySelector(':scope > [data-add]')
+    this.insertBefore(rows, addBtn)
     this.#rowsContainer = rows
+    addBtn?.addEventListener('click', () => this.#addRow())
   }
 }
 
