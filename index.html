@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LocalStorageForm Test</title>
+  <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+  <local-storage-form>
+    <form id="test-form">
+      <fieldset>
+        <legend>Text</legend>
+        <input type="text" name="username" placeholder="Username">
+      </fieldset>
+
+      <fieldset>
+        <legend>Textarea</legend>
+        <textarea name="bio" rows="3" placeholder="Bio"></textarea>
+      </fieldset>
+
+      <fieldset>
+        <legend>Select</legend>
+        <select name="role">
+          <option value="">-- pick one --</option>
+          <option value="admin">Admin</option>
+          <option value="editor">Editor</option>
+          <option value="viewer">Viewer</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>Radio</legend>
+        <label><input type="radio" name="plan" value="free"> Free</label>
+        <label><input type="radio" name="plan" value="pro"> Pro</label>
+        <label><input type="radio" name="plan" value="enterprise"> Enterprise</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Checkbox (single)</legend>
+        <label><input type="checkbox" name="newsletter" value="yes"> Subscribe to newsletter</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Checkboxes (multi)</legend>
+        <label><input type="checkbox" name="interests" value="music"> Music</label>
+        <label><input type="checkbox" name="interests" value="code"> Code</label>
+        <label><input type="checkbox" name="interests" value="sports"> Sports</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Contacts</legend>
+        <repeating-section name="contacts">
+          <template>
+            <input data-name="contact-name" placeholder="Name">
+            <input data-name="contact-email" type="email" placeholder="Email">
+          </template>
+        </repeating-section>
+      </fieldset>
+
+      <button type="submit">Save</button>
+    </form>
+  </local-storage-form>
+
+  <script type="module" src="./index.js"></script>
+</body>
+</html>
