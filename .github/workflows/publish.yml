@@ -1,30 +1,23 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      - run: npm run test:run -- --coverage
-
   publish:
-    needs: test
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # required for npm provenance
+      contents: write  # push version bump commit and tag to main
+      id-token: write  # npm provenance attestation
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
@@ -35,6 +28,17 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: npm ci
+
+      - run: npm run test:run -- --coverage
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - run: npm version ${{ inputs.version }}
+
+      - run: git push --follow-tags
 
       - run: npm publish --provenance --access public
         env:
