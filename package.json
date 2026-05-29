@@ -1,6 +1,6 @@
 {
   "name": "progressively-enhanced-forms",
-  "version": "1.0.0",
+  "version": "0.5.0",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -34,5 +34,11 @@
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
   },
-  "customElements": "custom-elements.json"
+  "customElements": "custom-elements.json",
+  "files": [
+    "src",
+    "custom-elements.json",
+    "vscode-html-data.json",
+    "README.md"
+  ]
 }
