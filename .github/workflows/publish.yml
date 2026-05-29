@@ -2,21 +2,11 @@ name: Publish
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version bump type'
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # push version bump commit and tag to main
       id-token: write  # npm provenance attestation
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -31,24 +21,6 @@ jobs:
 
       - run: npm run test:run -- --coverage
 
-      - name: Configure git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - run: npm version ${{ inputs.version }}
-
-      - run: git push --follow-tags
-
-      - name: Get OIDC token
-        id: oidc
-        run: |
-          TOKEN=$(curl -sf -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=https://registry.npmjs.org" \
-            | jq -r '.value')
-          echo "token=$TOKEN" >> $GITHUB_OUTPUT
-
-      - name: Publish
-        run: npm publish --provenance --access public
+      - run: npm publish --provenance --access public
         env:
-          NODE_AUTH_TOKEN: ${{ steps.oidc.outputs.token }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
