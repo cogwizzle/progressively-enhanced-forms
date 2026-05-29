@@ -40,4 +40,7 @@ jobs:
 
       - run: git push --follow-tags
 
-      - run: npm publish --provenance --access public
+      - name: Publish
+        run: |
+          npm config delete //registry.npmjs.org/:_authToken
+          npm publish --provenance --access public
