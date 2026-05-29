@@ -1,0 +1,230 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/local-storage-form.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "`<local-storage-form>` — a zero-configuration wrapper that automatically\nsaves and restores the field values of any `<form id=\"...\">` it contains.\n\n## How it works\n\n- **On connect** — reads `localStorage` for each wrapped form and restores\n  any previously saved values.\n- **On submit** — serializes all form fields to `localStorage` under the\n  form's `id`. Fields that belong to a nested `<repeating-section>` are\n  excluded because that element manages its own storage.\n\n## localStorage key\n\nEach form is stored under its `id` attribute:\n```\nlocalStorage[\"my-form\"] = '{\"username\":\"alice\",\"plan\":\"pro\"}'\n```\n\n## Requirements\n\n- The inner `<form>` **must** have an `id` attribute. Forms without an `id`\n  are silently skipped.\n- No JavaScript wiring is needed — drop the element into HTML and it works.\n- No shadow DOM — styles applied to form elements pass through naturally.\n\n## Supported field types\n\ntext, email, password, number, date, and other text-like inputs; `<textarea>`;\n`<select>`; radio groups; single checkboxes; multi-value checkbox groups.",
+          "name": "LocalStorageForm",
+          "members": [
+            {
+              "kind": "field",
+              "name": "#boundHandleFormSubmit",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#write",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "key",
+                  "type": {
+                    "text": "string"
+                  }
+                },
+                {
+                  "name": "formData",
+                  "type": {
+                    "text": "FormData"
+                  }
+                }
+              ],
+              "description": "Serializes `formData` to a plain object and writes it to `localStorage`\nunder `key`. Multi-value fields (same-name checkboxes) are stored as arrays;\nsingle-value fields are stored as strings."
+            },
+            {
+              "kind": "method",
+              "name": "#read",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "key",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Reads and parses a JSON object from `localStorage`. Returns `null` when\nno entry exists for `key`.",
+              "return": {
+                "type": {
+                  "text": "Record<string, string | string[]> | null"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#handleFormSubmit",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Handles a form submit event: prevents the default navigation, extracts\n`FormData` from the submitted form, strips any fields owned by a nested\n`<repeating-section>`, then persists the remainder to localStorage."
+            },
+            {
+              "kind": "method",
+              "name": "#loadForms",
+              "privacy": "private",
+              "description": "Iterates every `<form id=\"...\">` inside this element and restores any\npreviously saved values from localStorage."
+            }
+          ],
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "local-storage-form",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "local-storage-form",
+          "declaration": {
+            "name": "LocalStorageForm",
+            "module": "src/local-storage-form.js"
+          }
+        }
+      ]
+    },
+    {
+      "kind": "javascript-module",
+      "path": "src/repeating-section.js",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "`<repeating-section>` — a zero-configuration custom element that manages a\ndynamic list of cloned template rows with automatic localStorage persistence.\n\n## How it works\n\n- **On connect** — injects a rows container `<div>` immediately before the\n  `[data-add]` button, then restores any previously saved rows from\n  localStorage.\n- **On form submit** — serializes every non-empty row to localStorage. Empty\n  rows (all fields blank) are not saved.\n- **On disconnect** — removes the submit listener from the parent form.\n\n## HTML attributes\n\n| Attribute | Required | Description |\n|-----------|----------|-------------|\n| `name`    | yes      | Identifies this section. Also determines the localStorage key suffix (`formId.name`). |\n\n## localStorage key\n\nEach section is stored under `{formId}.{name}`:\n```\nlocalStorage[\"profile.contacts\"] = '[{\"_rowId\":\"abc\",\"contact-name\":\"Alice\"}]'\n```\n\n## Template structure\n\nDefine row fields inside a `<template>` as the first direct child.\nUse standard `name` attributes — the element reads them for accessibility\nand internally renames each field to `{name}-{rowId}` to guarantee\nuniqueness across rows.\n\nA `data-name` attribute is also added to each field so the element can\nlocate field values by their original name when saving, without relying\non the generated `name` attribute.\n\n## Add button\n\nPlace any element with `data-add` as a direct child — clicking it appends a\nnew row. You control the button's markup, placement, and styling.\n\n## Requirements\n\n- Must be placed inside a `<form id=\"...\">`.\n- The parent form **must** have an `id` attribute.\n- No JavaScript wiring is needed — drop the element into HTML and it works.\n- No shadow DOM — styles pass through to template fields naturally.\n- Nested `<repeating-section>` elements are not supported.",
+          "name": "RepeatingSection",
+          "members": [
+            {
+              "kind": "field",
+              "name": "#template",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLTemplateElement | null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#rowsContainer",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLElement | null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#form",
+              "privacy": "private",
+              "type": {
+                "text": "HTMLFormElement | null"
+              },
+              "default": "null"
+            },
+            {
+              "kind": "field",
+              "name": "#boundSave",
+              "privacy": "private"
+            },
+            {
+              "kind": "method",
+              "name": "#generateRowId",
+              "privacy": "private",
+              "description": "Generates a collision-free UUID for a new row by comparing against all\nrow IDs already present in the container.",
+              "return": {
+                "type": {
+                  "text": "string"
+                }
+              }
+            },
+            {
+              "kind": "method",
+              "name": "#addRow",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "data",
+                  "default": "{}",
+                  "description": "Optional saved field values keyed\nby their original `name`. `_rowId` is reserved for the row identifier.",
+                  "optional": true,
+                  "type": {
+                    "text": "Record<string, string>"
+                  }
+                }
+              ],
+              "description": "Clones the `<template>`, stamps each field with a `data-name` attribute\n(preserving the original `name` for accessibility lookups) and renames\nthe field to `{name}-{rowId}` to guarantee form uniqueness. Pre-populates\nfield values from `data` when restoring saved rows."
+            },
+            {
+              "kind": "method",
+              "name": "#save",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "event",
+                  "type": {
+                    "text": "Event"
+                  }
+                }
+              ],
+              "description": "Collects all row field values and writes them to localStorage under\n`{formId}.{name}`. Rows where every field is blank (or unchecked) are\nfiltered out so empty rows are never persisted."
+            },
+            {
+              "kind": "method",
+              "name": "#load",
+              "privacy": "private",
+              "parameters": [
+                {
+                  "name": "formId",
+                  "description": "The `id` of the parent `<form>`.",
+                  "type": {
+                    "text": "string"
+                  }
+                }
+              ],
+              "description": "Reads saved row data from localStorage and replays each row via `#addRow`,\nrestoring field values and the original row IDs."
+            },
+            {
+              "kind": "method",
+              "name": "#render",
+              "privacy": "private",
+              "description": "Creates the rows container `<div>` and inserts it before the `[data-add]`\nbutton. Wires the add button's click event to `#addRow`."
+            }
+          ],
+          "attributes": [
+            {
+              "type": {
+                "text": "string"
+              },
+              "description": "Identifies this section within the form and determines the localStorage key suffix. The full key is `{formId}.{name}`. Required.",
+              "name": "name"
+            }
+          ],
+          "superclass": {
+            "name": "HTMLElement"
+          },
+          "tagName": "repeating-section",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "custom-element-definition",
+          "name": "repeating-section",
+          "declaration": {
+            "name": "RepeatingSection",
+            "module": "src/repeating-section.js"
+          }
+        }
+      ]
+    }
+  ]
+}

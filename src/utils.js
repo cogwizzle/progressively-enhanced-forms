@@ -1,4 +1,6 @@
 /**
+ * Narrows an `Event` to `SubmitEvent`.
+ *
  * @param {Event} event
  * @returns {event is SubmitEvent}
  */
@@ -7,6 +9,8 @@ export function isSubmitEvent(event) {
 }
 
 /**
+ * Narrows an `Element | EventTarget` to `HTMLFormElement`.
+ *
  * @param {Element | EventTarget} element
  * @returns {element is HTMLFormElement}
  */
@@ -15,8 +19,29 @@ export function isFormElement(element) {
 }
 
 /**
- * @param {HTMLFormElement} form
- * @param {Record<string, string | string[]>} data
+ * Populates a form's fields from a plain data object, handling every standard
+ * input type:
+ *
+ * - **text / textarea / select** — sets `element.value`
+ * - **radio group** — checks the radio whose `value` matches the stored string
+ * - **single checkbox** — checks the box when its `value` matches the stored string
+ * - **checkbox group** (multiple `<input type="checkbox">` sharing a `name`) —
+ *   checks every box whose `value` appears in the stored array
+ *
+ * Fields not present in `data` are left untouched. Unknown keys in `data` are
+ * silently ignored.
+ *
+ * @param {HTMLFormElement} form - The form to populate.
+ * @param {Record<string, string | string[]>} data - Key/value pairs where each
+ *   key is a field `name` and the value is either a single string or an array
+ *   of strings (for multi-value checkboxes).
+ *
+ * @example
+ * fillForm(document.querySelector('form'), {
+ *   username: 'alice',
+ *   plan: 'pro',
+ *   interests: ['music', 'code'],
+ * })
  */
 export function fillForm(form, data) {
   for (const [name, value] of Object.entries(data)) {
@@ -34,7 +59,11 @@ export function fillForm(form, data) {
           }
         }
       } else {
-        el.value = /** @type {string} */ (value)
+        for (const node of el) {
+          if (node instanceof HTMLInputElement) {
+            node.checked = node.value === value
+          }
+        }
       }
     } else if (el instanceof HTMLInputElement && el.type === 'checkbox') {
       el.checked = el.value === value

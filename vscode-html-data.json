@@ -1,0 +1,20 @@
+{
+  "version": 1.1,
+  "tags": [
+    {
+      "name": "local-storage-form",
+      "description": "`<local-storage-form>` — a zero-configuration wrapper that automatically\nsaves and restores the field values of any `<form id=\"...\">` it contains.\n\n## How it works\n\n- **On connect** — reads `localStorage` for each wrapped form and restores\n  any previously saved values.\n- **On submit** — serializes all form fields to `localStorage` under the\n  form's `id`. Fields that belong to a nested `<repeating-section>` are\n  excluded because that element manages its own storage.\n\n## localStorage key\n\nEach form is stored under its `id` attribute:\n```\nlocalStorage[\"my-form\"] = '{\"username\":\"alice\",\"plan\":\"pro\"}'\n```\n\n## Requirements\n\n- The inner `<form>` **must** have an `id` attribute. Forms without an `id`\n  are silently skipped.\n- No JavaScript wiring is needed — drop the element into HTML and it works.\n- No shadow DOM — styles applied to form elements pass through naturally.\n\n## Supported field types\n\ntext, email, password, number, date, and other text-like inputs; `<textarea>`;\n`<select>`; radio groups; single checkboxes; multi-value checkbox groups.",
+      "attributes": []
+    },
+    {
+      "name": "repeating-section",
+      "description": "`<repeating-section>` — a zero-configuration custom element that manages a\ndynamic list of cloned template rows with automatic localStorage persistence.\n\n## How it works\n\n- **On connect** — injects a rows container `<div>` immediately before the\n  `[data-add]` button, then restores any previously saved rows from\n  localStorage.\n- **On form submit** — serializes every non-empty row to localStorage. Empty\n  rows (all fields blank) are not saved.\n- **On disconnect** — removes the submit listener from the parent form.\n\n## HTML attributes\n\n| Attribute | Required | Description |\n|-----------|----------|-------------|\n| `name`    | yes      | Identifies this section. Also determines the localStorage key suffix (`formId.name`). |\n\n## localStorage key\n\nEach section is stored under `{formId}.{name}`:\n```\nlocalStorage[\"profile.contacts\"] = '[{\"_rowId\":\"abc\",\"contact-name\":\"Alice\"}]'\n```\n\n## Template structure\n\nDefine row fields inside a `<template>` as the first direct child.\nUse standard `name` attributes — the element reads them for accessibility\nand internally renames each field to `{name}-{rowId}` to guarantee\nuniqueness across rows.\n\nA `data-name` attribute is also added to each field so the element can\nlocate field values by their original name when saving, without relying\non the generated `name` attribute.\n\n## Add button\n\nPlace any element with `data-add` as a direct child — clicking it appends a\nnew row. You control the button's markup, placement, and styling.\n\n## Requirements\n\n- Must be placed inside a `<form id=\"...\">`.\n- The parent form **must** have an `id` attribute.\n- No JavaScript wiring is needed — drop the element into HTML and it works.\n- No shadow DOM — styles pass through to template fields naturally.\n- Nested `<repeating-section>` elements are not supported.",
+      "attributes": [
+        {
+          "name": "name",
+          "description": "Identifies this section within the form and determines the localStorage key suffix. The full key is `{formId}.{name}`. Required."
+        }
+      ]
+    }
+  ]
+}
